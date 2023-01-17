@@ -1,7 +1,7 @@
 # selistener
 ## 参考项目 https://github.com/fuzz7j/JNDIServer
 
-用于解决判断出网情况的问题，以http与ldap形式批量监听端口，打印端口连接日志.
+用于解决判断出网情况的问题，以http、ldap以及socket形式批量监听端口，打印端口连接日志.
 
 用法:
 
