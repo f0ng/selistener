@@ -38,12 +38,14 @@ func main() {
 				}
 				defer ln.Close()
 				for {
+
 					conn, _ := ln.Accept()
 					if err != nil {
 						fmt.Println(err.Error())
 						continue
 					}
 					fb, err := ReadTagAndLength(conn, &bytes)
+					//fmt.Print(conn)
 					if err == nil {
 						go ChooseMode(fb, conn, port)
 					}
@@ -67,7 +69,10 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		LDAPServer(conn ,port )
 	//case 0x4a:
 	//	RMIServer(conn)
+	case 0x62:
+		SOCKETServer(conn , port)
 	default:
+		//fmt.Print(b)
 		conn.Close()
 		break
 	}
@@ -103,13 +108,19 @@ func HttpServer(conn net.Conn ,port int) {
 	defer conn.Close()
 	if err == nil {
 		session := strings.Split(string(rev), " ")[1]
-		//IsSave := CheckSave(session)
 		fmt.Printf("port: %v \n %v HTTP Query \"%v\" From %v\n",port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
-		//if IsSave {
-		//	conn.Write([]byte("True\n"))
-		//} else {
-		//	conn.Write([]byte("False\n"))
-		//}
+
+	}
+}
+
+func SOCKETServer(conn net.Conn ,port int) {
+	rev := make([]byte, 1024)
+	_, err := conn.Read(rev)
+	defer conn.Close()
+	if err == nil {
+		session := strings.Split(string(rev), " ")[1]
+		fmt.Printf("port: %v \n %v SOCKET Query \"%v\" From %v\n",port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
+
 	}
 }
 
@@ -129,14 +140,3 @@ func LDAPServer(conn net.Conn ,port int ) {
 		}
 	}
 }
-
-//func CheckSave(session string) (flag bool) {
-//	session = strings.TrimSpace(session)
-//	flag = false
-//	for _, i := range res {
-//		if strings.Contains(i, session) {
-//			flag = true
-//		}
-//	}
-//	return flag
-//}
