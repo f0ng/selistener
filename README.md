@@ -1,7 +1,15 @@
 # selistener
-## 大量代码源于https://github.com/fuzz7j/JNDIServer
+## 参考项目 https://github.com/fuzz7j/JNDIServer
 
 用于解决判断出网情况的问题，以http与ldap形式批量监听端口，打印端口连接日志.
+
+用法:
+
+```
+-ps , ports start    端口组监听，开始
+-pe , ports end      端口组监听，结束
+-pn ,port ,exp:22,3306,8443  指定端口监听
+```
 
 
 
