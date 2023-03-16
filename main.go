@@ -35,15 +35,17 @@ func main() {
 
 	ports := []int{}
 	// 定义几个变量，用于接收命令行的参数值
-	var ps        int
-	var pe    int
-	var port        string
-	var portl        string
+	var ps     int
+	var pe   int
+	var port     string
+	var portl     string
+	var wport string
 	// &user 就是接收命令行中输入 -u 后面的参数值，其他同理
 	flag.IntVar(&ps, "ps", 65535, "ports start")
 	flag.IntVar(&pe, "pe", 65535, "ports end")
 	flag.StringVar(&port, "pn", "", "port, exp:22,3306,8443")
 	flag.StringVar(&portl, "pl", "", "port, exp:8000-10000")
+	flag.StringVar(&wport, "wp", "65535", "port, exp:8000-10000")
 	// 解析命令行参数写入注册的flag里
 	flag.Parse()
 	//var dirnow = ""
@@ -90,6 +92,8 @@ func main() {
 	}
 
 
+
+
 	for _, v := range ports {
 		go func(port int) { //每个端口都扔进一个goroutine中去监听
 			var bytes []byte
@@ -120,7 +124,7 @@ func main() {
 			}
 		}(v)
 	}
-	UI.GinAction()
+	UI.GinAction(wport)
 	select {}
 	//}
 }
@@ -148,7 +152,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = HttpServer(conn ,port)
 		database, err := sql.Open("sqlite3", "file:" + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("http",ip, pt, content , te)
+		stmt.Exec("http" ,ip, pt, content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
