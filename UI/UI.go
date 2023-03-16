@@ -12,7 +12,8 @@ import (
 	"strings"
 )
 
-func GinAction() {
+func GinAction(port string) {
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	var dirnow = ""
 	if find := strings.Contains(dirnow, "selistener.db"); find {
@@ -20,6 +21,10 @@ func GinAction() {
 	}else{
 		dirnow = dirnow + "./selistener.db"
 	}
+
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "Thanks for using selistener!！Please add /resp to visit the results!\n\n\nGithub:https://github.com/f0ng/selistener")
+	})
 
 	r.GET("/resp", func(c *gin.Context) {
 		database, err := sql.Open("sqlite3", "file:" + dirnow + "?cache=shared&mode=rwc")
@@ -61,7 +66,8 @@ func GinAction() {
 	})
 
 
-
+	fmt.Println("Listening and serving HTTP on :" + port)
 	// 监听并在 0.0.0.0:8080 上启动服务
-	r.Run(":65535")
+	r.Run(":"+port  )
+
 }
