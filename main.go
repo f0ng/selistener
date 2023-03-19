@@ -1,5 +1,6 @@
 package main
 
+//ldap监听
 
 import (
 	"database/sql"
@@ -32,6 +33,27 @@ var (
 
 
 func main() {
+
+	os.Getwd()
+	var dirnow = ""
+
+	dirnow = "/selistener.db"
+
+
+	str, _ := os.Getwd()
+	fmt.Println(str + dirnow)
+
+	database, err := sql.Open("sqlite3", str +  dirnow + "?cache=shared&mode=rwc")
+	stmt, _ := database.Prepare("create table if not exists notesprotocol(id integer primary key ,protocol text, ip text , port text, content text,time text)")
+	stmt.Exec()
+
+	//stmt, _ = database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
+	//stmt.Exec("ldap","172.253.237.5:41578", "1234","/aaaa","2023-03-16 11:06:19")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer database.Close()
 
 	ports := []int{}
 	// 定义几个变量，用于接收命令行的参数值
@@ -92,8 +114,6 @@ func main() {
 	}
 
 
-
-
 	for _, v := range ports {
 		go func(port int) { //每个端口都扔进一个goroutine中去监听
 			var bytes []byte
@@ -152,7 +172,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = HttpServer(conn ,port)
 		database, err := sql.Open("sqlite3", "file:" + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("http" ,ip, pt, content , te)
+		stmt.Exec("http",ip, pt, content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -251,8 +271,10 @@ func HttpServer(conn net.Conn ,port int)(pt string ,content string , te string,i
 		session := strings.Split(string(rev), " ")[1]
 		fmt.Printf("port: %v \n%v HTTP Query \"%v\" From %v\n", port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
 		return strconv.Itoa(port), strings.TrimSpace(session), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+	}else{
+		return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 	}
-	return "","","",""
+
 }
 
 func SOCKETServer(conn net.Conn ,port int)(pt string ,content string , te string,ip string) {
@@ -263,8 +285,9 @@ func SOCKETServer(conn net.Conn ,port int)(pt string ,content string , te string
 		session := strings.Split(string(rev), " ")[1]
 		fmt.Printf("port: %v \n%v SOCKET Query \"%v\" From %v\n",port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
 		return strconv.Itoa(port), strings.TrimSpace(session), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+	}else{
+		return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 	}
-	return "","","",""
 }
 
 func RMIServer(conn net.Conn,port int)(pt string ,content string , te string,ip string) {
@@ -280,9 +303,12 @@ func RMIServer(conn net.Conn,port int)(pt string ,content string , te string,ip 
 			res = append(res, string(rev[43:67]))
 			fmt.Printf("port: %v \n %v RMI Query \"%v\" From %v\n", port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[43:67])), conn.RemoteAddr())
 			return strconv.Itoa(port), strings.TrimSpace(string(rev[43:67])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+		}else{
+			return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 		}
+	} else{
+		return "","","",""
 	}
-	return "","","",""
 }
 
 
@@ -299,9 +325,13 @@ func LDAPServer(conn net.Conn ,port int )(pt string ,content string , te string,
 			res = append(res, string(rev[8:30]))
 			fmt.Printf("port: %v \n%v LDAP Query \"%v\" From %v\n",port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[8:30])), conn.RemoteAddr())
 			return strconv.Itoa(port), strings.TrimSpace(string(rev[8:30])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+		}else{
+			return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+
 		}
+	}else{
+		return "","","",""
 	}
-	return "","","",""
 }
 
 

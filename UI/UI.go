@@ -8,28 +8,31 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
-	"strings"
 )
 
-func GinAction(port string) {
+func GinAction( wport string) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+
+	os.Getwd()
 	var dirnow = ""
-	if find := strings.Contains(dirnow, "selistener.db"); find {
-		dirnow = dirnow
-	}else{
-		dirnow = dirnow + "./selistener.db"
-	}
+
+	dirnow = "/selistener.db"
+
+
+	str, _ := os.Getwd()
+	fmt.Println(str + dirnow)
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "Thanks for using selistener!！Please add /resp to visit the results!\n\n\nGithub:https://github.com/f0ng/selistener")
 	})
 
 	r.GET("/resp", func(c *gin.Context) {
-		database, err := sql.Open("sqlite3", "file:" + dirnow + "?cache=shared&mode=rwc")
-		stmt, _ := database.Prepare("create table if not exists notesprotocol(id integer primary key ,protocol text, ip text , port text, content text,time text)")
-		stmt.Exec()
+		database, err := sql.Open("sqlite3", str +  dirnow + "?cache=shared&mode=rwc")
+		//stmt, _ := database.Prepare("create table if not exists notesprotocol(id integer primary key ,protocol text, ip text , port text, content text,time text)")
+		//stmt.Exec()
 
 		//stmt, _ = database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
 		//stmt.Exec("ldap","172.253.237.5:41578", "1234","/aaaa","2023-03-16 11:06:19")
@@ -37,7 +40,7 @@ func GinAction(port string) {
 			log.Fatal(err)
 		}
 
-		defer database.Close()
+		//defer database.Close()
 
 		var id int
 		var ip string
@@ -66,8 +69,7 @@ func GinAction(port string) {
 	})
 
 
-	fmt.Println("Listening and serving HTTP on :" + port)
+	fmt.Println("[default] web result port : " + wport)
 	// 监听并在 0.0.0.0:8080 上启动服务
-	r.Run(":"+port  )
-
+	r.Run(":"+wport)
 }
