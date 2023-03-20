@@ -10,13 +10,15 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
-func GinAction( wport string) {
+func GinAction( wport string ,token string) {
+	//token := randStr(10) // 随机token
+	//token := "f0ng"  // 自定义token
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
-	os.Getwd()
 	var dirnow = ""
 
 	dirnow = "/selistener.db"
@@ -30,46 +32,54 @@ func GinAction( wport string) {
 	})
 
 	r.GET("/resp", func(c *gin.Context) {
-		database, err := sql.Open("sqlite3", str +  dirnow + "?cache=shared&mode=rwc")
-		//stmt, _ := database.Prepare("create table if not exists notesprotocol(id integer primary key ,protocol text, ip text , port text, content text,time text)")
-		//stmt.Exec()
+		words := c.DefaultQuery("words","")
+		ipc := c.DefaultQuery("ip","")
+		portc := c.DefaultQuery("port","")
+		protocolc := c.DefaultQuery("protocol","")
+		tokenc := c.DefaultQuery("token","")
 
-		//stmt, _ = database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		//stmt.Exec("ldap","172.253.237.5:41578", "1234","/aaaa","2023-03-16 11:06:19")
-		if err != nil {
-			log.Fatal(err)
+		b := tokenc == token
+		if (b) {
+
+			database, err := sql.Open("sqlite3", str+dirnow+"?cache=shared&mode=rwc")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			var id int
+			var ip string
+			var port string
+			var content string
+			var time string
+			var protocol string
+			rows, err := database.Query("select id, protocol, ip, port, content, time  from notesprotocol where content like '%" + words + "%' and ip like '%" + ipc + "%' and port like '%" + portc + "%' and protocol like '%" + protocolc + "%'")
+			if nil != err {
+				fmt.Println(err)
+			}
+			var total string
+			total = "["
+			for rows.Next() {
+				rows.Scan(&id, &protocol, &ip, &port, &content, &time)
+				total = total + "{\"" + strconv.Itoa(id) + "\":{\"ip\": \"" + ip + "\",\"port\":\"" + port + "\",\"protocol\":\"" + protocol + "\",\"content\":\"" + strings.TrimSpace(content) + "\",\"time\":\"" + time + "\"}},"
+				fmt.Println(strconv.Itoa(id) + ": " + ip + " " + content + " " + time)
+			}
+			total = string([]byte(total)[0:len(total)-1]) + "]"
+
+			json_str := total
+			var Ids []map[string]interface{}
+			json.Unmarshal([]byte(json_str), &Ids)
+
+			c.AsciiJSON(http.StatusOK, Ids)
+		}else{
+			c.String(http.StatusUnauthorized, "Error,Please input token!")
 		}
-
-		//defer database.Close()
-
-		var id int
-		var ip string
-		var port string
-		var content string
-		var time string
-		var protocol string
-		rows, err := database.Query("select id, protocol, ip, port, content, time  from notesprotocol")
-		if nil != err {
-			fmt.Println(err)
-		}
-		var total string
-		total = "["
-		for rows.Next() {
-			rows.Scan(&id, &protocol, &ip, &port, &content ,&time)
-			total = total + "{\"" + strconv.Itoa(id) + "\":{\"ip\": \"" + ip + "\",\"port\":\"" + port + "\",\"protocol\":\"" + protocol +"\",\"content\":\"" + content + "\",\"time\":\"" + time +"\"}},"
-			fmt.Println(strconv.Itoa(id) + ": " + ip + " " + content + " " + time)
-		}
-		total = string([]byte(total)[0:len(total)-1]) + "]"
-
-		json_str := total
-		var Ids []map[string]interface{}
-		json.Unmarshal([]byte(json_str), &Ids)
-
-		c.AsciiJSON(http.StatusOK, Ids)
 	})
 
 
-	fmt.Println("[default] web result port : " + wport)
+	fmt.Println("[default] web result port : " + wport + "\ntoken如下:" + token)
 	// 监听并在 0.0.0.0:8080 上启动服务
 	r.Run(":"+wport)
 }
+
+
+
