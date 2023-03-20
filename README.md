@@ -26,6 +26,7 @@
 -pe , ports end      端口组监听，结束
 -pn ,port ,exp:22,3306,8443  指定端口监听
 -wp ,wport ,exp: 65535    指定端口运行http服务查看结果
+-t, token, exp: f0ng  指定token
 ```
 
 - windows可直接运行
