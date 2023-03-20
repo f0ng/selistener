@@ -42,6 +42,13 @@ get https://copr.fedorainfracloud.org/coprs/ngompa/musl-libc/repo/epel-7/ngompa-
 yum install -y musl-libc-static
 ```
 
+web页面进行查询
+```bash
+words参数，根据内容查询请求，exp: words=/index
+ip参数，根据ip查询请求，exp: ip=127.0.0.1
+port参数，根据端口查询请求，exp: port=8081
+protocol参数，根据协议查询请求，exp: protocol=http
+```
 
 
 ### 场景一
