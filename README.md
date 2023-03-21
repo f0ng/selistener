@@ -70,3 +70,7 @@ protocol参数，根据协议查询请求，exp: protocol=http
 在进行反弹shell的时候，有时会禁止一些目的端口访问，可以通过使用该工具进行批量端口监听，查看端口通信接收情况(socket)。
 
 <img width="777" alt="image" src="https://user-images.githubusercontent.com/48286013/212856726-342c12e5-b1e9-4a6d-a47c-04b91a8785c1.png">
+
+
+## 延伸用法
+1. 搭配log4j2burpscanner探测内网的Log4j(CVE-2021-44228)漏洞，参考文章https://mp.weixin.qq.com/s/NJ3gocQ_LojYlJk_0yWm6A
