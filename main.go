@@ -274,19 +274,37 @@ func randStr(n int) string {
 
 func HttpServer(conn net.Conn ,port int)(pt string ,content string , te string,ip string) {
 	rev := make([]byte, 1024)
+
 	_, err := conn.Read(rev)
 	defer conn.Close()
 	if err == nil {
-		//fmt.Println(rev)
+
+		//fmt.Println(string(rev))
 		//try(func() {
-		session := strings.Split(string(rev), " ")[1]
-		//	panic(errors.New("异常"))
-		//}, func(err interface{}) {
-		//	fmt.Println("捕获异常", err)
-		//})
+		var session string
+		//if len(strings.Split(string(rev), ""))>1 {
+		//	session = strings.Split(string(rev), " ")[1]
+		//}else{
+		session = strings.Split(string(rev), "\n")[0]
+		if len(session) == 0 {
+			session = "null"
+		}
+		//}
+		//lists := strings.Split(string(rev), "/n")
+		//if len(lists)>1 {
+		//fmt.Println(rev[0:stoplen])
+		//fmt.Println(stoplen)
 
+		//session := string(rev[0:stoplen])
+		//session = strings.Replace(session," ","",-1)
+		//session = strings.Replace(session, ,"",-1)
+		//fmt.Println(session)
+		//session = lists[0]
+		//}else{
+		//	session = lists[0]
+		//}
 
-		fmt.Printf("port: %v \n%v HTTP Query \"%v\" From %v\n", port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
+		fmt.Printf("port: %v %v HTTP Query \"%v\" From %v\n", port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
 		return strconv.Itoa(port), strings.TrimSpace(session), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 	}else{
 		return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()

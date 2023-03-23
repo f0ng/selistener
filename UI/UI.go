@@ -60,7 +60,9 @@ func GinAction( wport string ,token string) {
 			total = "["
 			for rows.Next() {
 				rows.Scan(&id, &protocol, &ip, &port, &content, &time)
-				total = total + "{\"" + strconv.Itoa(id) + "\":{\"ip\": \"" + ip + "\",\"port\":\"" + port + "\",\"protocol\":\"" + protocol + "\",\"content\":\"" + strings.TrimSpace(content) + "\",\"time\":\"" + time + "\"}},"
+				//fmt.Println(strings.Replace(strings.TrimSpace(content),"\\","/",-1))
+				//fmt.Println(strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1))
+				total = total + "{\"" + strconv.Itoa(id) + "\":{\"ip\": \"" + ip + "\",\"port\":\"" + port + "\",\"protocol\":\"" + protocol + "\",\"content\":\"" + strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1) + "\",\"time\":\"" + time + "\"}},"
 				fmt.Println(strconv.Itoa(id) + ": " + ip + " " + content + " " + time)
 			}
 			total = string([]byte(total)[0:len(total)-1]) + "]"
