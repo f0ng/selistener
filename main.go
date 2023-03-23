@@ -68,7 +68,7 @@ func main() {
 	flag.StringVar(&port, "pn", "", "port, exp:22,3306,8443")
 	flag.StringVar(&portl, "pl", "", "port, exp:8000-10000")
 	flag.StringVar(&wport, "wp", "65535", "port, exp:8000-10000")
-	flag.StringVar(&token, "t", "", "token ,token authentication")
+	flag.StringVar(&token, "t", "f0ng", "token ,token authentication")
 	// 解析命令行参数写入注册的flag里
 	flag.Parse()
 
@@ -156,21 +156,49 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 	var content string
 	var te string
 	var ip string
+	fmt.Println(b)
 	switch b {
-	case 0x47:
+	case 0x47: // GET方法
 		pt ,content ,te ,ip =  HttpServer(conn ,port)
 		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("http",ip, pt, content , te)
+		stmt.Exec("http-get",ip, pt,string(b) + content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
 		database.Close()
-	case 0x30:
+	case 0x48: // HEAD方法
+		pt ,content ,te ,ip =  HttpServer(conn ,port)
+		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
+		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
+		stmt.Exec("http-get",ip, pt,string(b) + content , te)
+		if err != nil {
+			log.Fatal("could not open sqlite3 database file", err)
+		}
+		database.Close()
+	case 0x4F: // HEAD方法
+		pt ,content ,te ,ip =  HttpServer(conn ,port)
+		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
+		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
+		stmt.Exec("http-get",ip, pt,string(b) + content , te)
+		if err != nil {
+			log.Fatal("could not open sqlite3 database file", err)
+		}
+		database.Close()
+	case 0x50: // POST方法 PUT方法
+		pt ,content ,te ,ip =  HttpServer(conn ,port)
+		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
+		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
+		stmt.Exec("http-post",ip, pt,string(b) + content , te)
+		if err != nil {
+			log.Fatal("could not open sqlite3 database file", err)
+		}
+		database.Close()
+	case 0x30: // LDAP
 		pt ,content ,te ,ip = LDAPServer(conn ,port )
 		database, err := sql.Open("sqlite3", "file:"+ str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("ldap",ip, pt, content , te)
+		stmt.Exec("ldap",ip, pt,string(b) +  content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -179,7 +207,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = RMIServer(conn ,port)
 		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("rmi",ip, pt, content , te)
+		stmt.Exec("rmi",ip, pt,string(b) +  content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -188,7 +216,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = SOCKETServer(conn , port)
 		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("sock",ip, pt, content , te)
+		stmt.Exec("sock",ip, pt,string(b) +  content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -276,26 +304,35 @@ func HttpServer(conn net.Conn ,port int)(pt string ,content string , te string,i
 	rev := make([]byte, 1024)
 
 	_, err := conn.Read(rev)
+	//fmt.Println(aa)
 	defer conn.Close()
 	if err == nil {
 
-		//fmt.Println(string(rev))
+		//fmt.Println((rev))
 		//try(func() {
-		var session string
+		//var session string
 		//if len(strings.Split(string(rev), ""))>1 {
 		//	session = strings.Split(string(rev), " ")[1]
 		//}else{
-		session = strings.Split(string(rev), "\n")[0]
-		if len(session) == 0 {
-			session = "null"
-		}
+		//session = strings.Split(string(rev), "\n")[0]
+		//if len(session) == 0 {
+		//	session = "null"
+		//}
 		//}
 		//lists := strings.Split(string(rev), "/n")
 		//if len(lists)>1 {
 		//fmt.Println(rev[0:stoplen])
 		//fmt.Println(stoplen)
+		var stoplen int
+		for i := 43; i < len(rev); i++ {
+			b := rev[i] == 0
+			if (b){
+				stoplen = i
+				break
+			}
+		}
 
-		//session := string(rev[0:stoplen])
+		session := string(rev[0:stoplen])
 		//session = strings.Replace(session," ","",-1)
 		//session = strings.Replace(session, ,"",-1)
 		//fmt.Println(session)
