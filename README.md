@@ -1,5 +1,5 @@
 ### 参考项目 https://github.com/fuzz7j/JNDIServer
-
+### 搭配log4j2burpscanner参考[这里](https://github.com/f0ng/selistener/blob/master/FAQ.md#%E8%81%94%E5%8A%A8log4j2burpscanner)
 # selistener
 
 用于解决判断出网情况的问题，以http、ldap、rmi以及socket形式批量监听端口，在web界面进行结果查看，结果呈现形式类似dnslog，可用于内网log4j(CVE-2021-44228)等漏洞的检测，默认访问`http://x.x.x.x:65535/resp`即可查看到请求
