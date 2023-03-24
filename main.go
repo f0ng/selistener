@@ -12,9 +12,6 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"path"
-	"path/filepath"
-	"runtime"
 	"selistener/UI"
 	"strconv"
 	"strings"
@@ -68,7 +65,7 @@ func main() {
 	flag.StringVar(&port, "pn", "", "port, exp:22,3306,8443")
 	flag.StringVar(&portl, "pl", "", "port, exp:8000-10000")
 	flag.StringVar(&wport, "wp", "65535", "port, exp:8000-10000")
-	flag.StringVar(&token, "t", "", "token ,token authentication")
+	flag.StringVar(&token, "t", "f0ng", "token ,token authentication")
 	// 解析命令行参数写入注册的flag里
 	flag.Parse()
 
@@ -122,7 +119,7 @@ func main() {
 					continue
 				}
 				fb, err := ReadTagAndLength(conn, &bytes)
-				//fmt.Print(conn)
+
 				if err == nil {
 
 					go func() {
@@ -148,9 +145,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 
 	dirnow = "/selistener.db"
 
-
 	str, _ := os.Getwd()
-	//fmt.Println(getCurrentAbPath())
 
 	var pt string
 	var content string
@@ -198,16 +193,16 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = LDAPServer(conn ,port )
 		database, err := sql.Open("sqlite3", "file:"+ str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("ldap",ip, pt,string(b) +  content , te)
+		stmt.Exec("ldap",ip, pt,content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
 		database.Close()
-	case 0x4a:
+	case 0x4a: // rmi
 		pt ,content ,te ,ip = RMIServer(conn ,port)
 		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("rmi",ip, pt,string(b) +  content , te)
+		stmt.Exec("rmi",ip, pt, content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -216,7 +211,7 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 		pt ,content ,te ,ip = SOCKETServer(conn , port)
 		database, err := sql.Open("sqlite3", "file:" + str + dirnow +"?cache=shared&mode=rwc")
 		stmt, _ := database.Prepare("insert into notesprotocol( protocol, ip, port, content, time) values(?, ? ,? , ? , ? )")
-		stmt.Exec("sock",ip, pt,string(b) +  content , te)
+		stmt.Exec("sock",ip, pt, content , te)
 		if err != nil {
 			log.Fatal("could not open sqlite3 database file", err)
 		}
@@ -227,35 +222,6 @@ func ChooseMode(b byte, conn net.Conn,port int) {
 	}
 	//return pt ,content ,te ,ip
 }
-
-//func getCurrentAbPath() string {
-//	dir := getCurrentAbPathByExecutable()
-//	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
-//	if strings.Contains(dir, tmpDir) {
-//		return getCurrentAbPathByCaller()
-//	}
-//	return dir
-//}
-// 获取当前执行文件绝对路径
-func getCurrentAbPathByExecutable() string {
-	exePath, err := os.Executable()
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, _ := filepath.EvalSymlinks(filepath.Dir(exePath))
-	return res
-}
-
-// 获取当前执行文件绝对路径（go run）
-func getCurrentAbPathByCaller() string {
-	var abPath string
-	_, filename, _, ok := runtime.Caller(0)
-	if ok {
-		abPath = path.Dir(filename)
-	}
-	return abPath
-}
-
 
 func ReadTagAndLength(conn net.Conn, bytes *[]byte) (fb byte, err error) {
 	var b byte
@@ -308,21 +274,6 @@ func HttpServer(conn net.Conn ,port int)(pt string ,content string , te string,i
 	defer conn.Close()
 	if err == nil {
 
-		//fmt.Println((rev))
-		//try(func() {
-		//var session string
-		//if len(strings.Split(string(rev), ""))>1 {
-		//	session = strings.Split(string(rev), " ")[1]
-		//}else{
-		//session = strings.Split(string(rev), "\n")[0]
-		//if len(session) == 0 {
-		//	session = "null"
-		//}
-		//}
-		//lists := strings.Split(string(rev), "/n")
-		//if len(lists)>1 {
-		//fmt.Println(rev[0:stoplen])
-		//fmt.Println(stoplen)
 		var stoplen int
 		for i := 0; i < len(rev); i++ {
 			b := rev[i] == 0
@@ -333,13 +284,6 @@ func HttpServer(conn net.Conn ,port int)(pt string ,content string , te string,i
 		}
 
 		session := string(rev[0:stoplen])
-		//session = strings.Replace(session," ","",-1)
-		//session = strings.Replace(session, ,"",-1)
-		//fmt.Println(session)
-		//session = lists[0]
-		//}else{
-		//	session = lists[0]
-		//}
 
 		fmt.Printf("port: %v %v HTTP Query \"%v\" From %v\n", port, time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(session), conn.RemoteAddr())
 		return strconv.Itoa(port), strings.TrimSpace(session), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
@@ -381,9 +325,10 @@ func RMIServer(conn net.Conn,port int)(pt string ,content string , te string,ip 
 				}
 			}
 			//fmt.Print(rev)
-			res = append(res, string(rev[43:stoplen]))
-			fmt.Printf("port: %v \n %v RMI Query \"%v\" From %v\n", port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[43:stoplen])), conn.RemoteAddr())
-			return strconv.Itoa(port), strings.TrimSpace(string(rev[43:stoplen])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+			res = append(res, string(rev[44:stoplen]))
+			fmt.Println(rev[44:stoplen])
+			fmt.Printf("port: %v \n %v RMI Query \"%v\" From %v\n", port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[44:stoplen])), conn.RemoteAddr())
+			return strconv.Itoa(port), strings.TrimSpace(string(rev[44:stoplen])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 		}else{
 			return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 		}
@@ -404,7 +349,7 @@ func LDAPServer(conn net.Conn ,port int )(pt string ,content string , te string,
 		_, err := conn.Read(rev)
 
 		if err == nil {
-			//fmt.Print(rev)
+
 			var stoplen int
 			for i := 0; i < len(rev); i++ {
 				b := rev[i] == 10
@@ -413,9 +358,10 @@ func LDAPServer(conn net.Conn ,port int )(pt string ,content string , te string,
 					break
 				}
 			}
-			res = append(res, string(rev[8:stoplen]))
-			fmt.Printf("port: %v \n%v LDAP Query \"%v\" From %v\n",port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[8:stoplen])), conn.RemoteAddr())
-			return strconv.Itoa(port), strings.TrimSpace(string(rev[8:stoplen])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
+			res = append(res, string(rev[9:stoplen]))
+			fmt.Println(rev[9:stoplen])
+			fmt.Printf("port: %v \n%v LDAP Query \"%v\" From %v\n",port,time.Now().Format("2006-01-02 15:04:05"), strings.TrimSpace(string(rev[9:stoplen])), conn.RemoteAddr())
+			return strconv.Itoa(port), strings.TrimSpace(string(rev[9:stoplen])), time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 		}else{
 			return strconv.Itoa(port), "", time.Now().Format("2006-01-02 15:04:05"), conn.RemoteAddr().String()
 

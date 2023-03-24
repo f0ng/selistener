@@ -66,16 +66,16 @@ func GinAction( wport string ,token string) {
 				if content == string(byte(0)){
 					content = "null"
 				}
-				var data []byte = []byte(content)
-				fmt.Println(data)
+				//var data []byte = []byte(content)
+
 				//fmt.Println(strings.Replace(strings.TrimSpace(content),"\\","/",-1))
 				//fmt.Println(strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1))
 				total = total + "{\"" + strconv.Itoa(id) + "\":{\"ip\": \"" + ip + "\",\"port\":\"" + port + "\",\"protocol\":\"" + protocol + "\",\"content\":\"" + strings.Replace(strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1),"\"","\\\"",-1) + "\",\"time\":\"" + time + "\"}},"
 
-				fmt.Println(strconv.Itoa(id) + ": " + ip + " " + strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1) + " " + time)
+				//fmt.Println(strconv.Itoa(id) + ": " + ip + " " + strings.Replace(strings.Replace(strings.TrimSpace(content),"\\","/",-1),"\r\n","",-1) + " " + time)
 			}
 			total = string([]byte(total)[0:len(total)-1]) + "]"
-
+			fmt.Println(total)
 			json_str := total
 			var Ids []map[string]interface{}
 			json.Unmarshal([]byte(json_str), &Ids)
